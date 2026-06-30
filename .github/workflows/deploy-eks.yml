@@ -13,13 +13,34 @@ env:
 jobs:
 
   # ============================================================
+  # JOB 0: DETECTAR QUÉ CAMBIÓ
+  # ============================================================
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      db: ${{ steps.filter.outputs.db }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            backend:
+              - 'backend/**'
+            db:
+              - 'db/**'
+
+  # ============================================================
   # JOB 1: BUILD & DEPLOY FRONTEND (solo si cambió /frontend)
   # ============================================================
   deploy-frontend:
+    needs: changes
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      contains(toJson(github.event.commits), 'frontend/')
+    if: ${{ needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: Checkout código
@@ -40,7 +61,6 @@ jobs:
       - name: Definir tag de imagen
         run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-      # ---- OPTIMIZACIÓN 2: Docker layer cache desde ECR ----
       - name: Build & push FRONTEND (con caché)
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -92,10 +112,9 @@ jobs:
   # JOB 2: BUILD & DEPLOY BACKEND (solo si cambió /backend)
   # ============================================================
   deploy-backend:
+    needs: changes
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      contains(toJson(github.event.commits), 'backend/')
+    if: ${{ needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: Checkout código
@@ -116,7 +135,6 @@ jobs:
       - name: Definir tag de imagen
         run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-      # ---- OPTIMIZACIÓN 2: Docker layer cache desde ECR ----
       - name: Build & push BACKEND (con caché)
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -177,10 +195,9 @@ jobs:
   # JOB 3: BUILD & DEPLOY DB (solo si cambió /db)
   # ============================================================
   deploy-db:
+    needs: changes
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      contains(toJson(github.event.commits), 'db/')
+    if: ${{ needs.changes.outputs.db == 'true' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: Checkout código
@@ -201,7 +218,6 @@ jobs:
       - name: Definir tag de imagen
         run: echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-      # ---- OPTIMIZACIÓN 2: Docker layer cache desde ECR ----
       - name: Build & push DB (con caché)
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
