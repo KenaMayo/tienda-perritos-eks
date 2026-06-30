@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
-      contains(toJson(github.event.commits.*.modified + github.event.commits.*.added + github.event.commits.*.removed), 'frontend/')
+      contains(toJson(github.event.commits), 'frontend/')
 
     steps:
       - name: Checkout código
@@ -95,7 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
-      contains(toJson(github.event.commits.*.modified + github.event.commits.*.added + github.event.commits.*.removed), 'backend/')
+      contains(toJson(github.event.commits), 'backend/')
 
     steps:
       - name: Checkout código
@@ -180,7 +180,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
-      contains(toJson(github.event.commits.*.modified + github.event.commits.*.added + github.event.commits.*.removed), 'db/')
+      contains(toJson(github.event.commits), 'db/')
 
     steps:
       - name: Checkout código
