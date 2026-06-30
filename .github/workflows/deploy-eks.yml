@@ -22,17 +22,19 @@ jobs:
       backend: ${{ steps.filter.outputs.backend }}
       db: ${{ steps.filter.outputs.db }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            frontend:
-              - 'frontend/**'
-            backend:
-              - 'backend/**'
-            db:
-              - 'db/**'
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0    
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          frontend:
+            - 'frontend/**'
+          backend:
+            - 'backend/**'
+          db:
+            - 'db/**'
 
   # ============================================================
   # JOB 1: BUILD & DEPLOY FRONTEND (solo si cambió /frontend)
